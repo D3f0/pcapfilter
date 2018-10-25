@@ -20,6 +20,14 @@ pcapfilter.pcapfilter module
     :undoc-members:
     :show-inheritance:
 
+pcapfilter.template module
+--------------------------
+
+.. automodule:: pcapfilter.template
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

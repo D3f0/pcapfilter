@@ -1,5 +1,5 @@
 Welcome to PCap Filter's documentation!
-======================================
+=======================================
 
 .. toctree::
    :maxdepth: 2

@@ -51,18 +51,17 @@ def show_docker_help():
 @click.command(
     help="Read packet capture data (pcap) stream from stdin, apply a function and write to stdout."
     "Example (capture from INTERFACE and display in Wireshark): "
-    "tcpdump -i INTERFACE -s0 -w - | pcapfilter -m myfiltermodule.py | wireshark -k -i -"
+    "tcpdump -i INTERFACE -s0 -w - | pcapfilter -m myfiltermodule.py | wireshark -k -i -",
+    epilog="In normal operation stdin and stdout should work with pcap data. Log messages are written to stderr.",
 )
 @click.option(
     "-m",
     "--module",
     type=str,
     default="",
-    help="A python module name that contains a packet_filter(packet). More info at https://pcapfilter.readthedocs.io/en/latest/usage.html#defining-a-filter",
+    help="A python module name that contains a packet_filter(packet). You can create one with -w example.py",
 )
-@click.option(
-    "-s", "--silent", is_flag=False, help="Show log messages (defaults to STDERR)"
-)
+@click.option("-s", "--silent", is_flag=False, help="Hide log messages from STDERR)")
 @click.option("-o", "--oldpcap", is_flag=True, help="Use old pcap for input")
 @click.option("-r", "--reload", is_flag=True, help="Reloads the module upon changes")
 @click.option("-w", "--create-template", type=str, help="Creates an example file")
@@ -87,7 +86,7 @@ def main(module, silent, oldpcap, reload, create_template, docker_help):
             LOGGER.critical("Will not overwrite %s", create_template)
             return 4
         LOGGER.info("Creating example file named {}".format(module))
-        with open(create_template, 'w') as fp:
+        with open(create_template, "w") as fp:
             fp.write(FILTER_TEMPLATE)
         return 0
 

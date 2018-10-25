@@ -20,6 +20,7 @@ from scapy.error import Scapy_Exception
 try:
     from watchdog.events import FileSystemEventHandler
     from watchdog.observers import Observer
+
     WATCHDOG_ENABLED = True
 except ImportError:
     WATCHDOG_ENABLED = False
@@ -32,12 +33,12 @@ NOTIFICATION_QUEUE = Queue(maxsize=1)
 
 
 def start_observer(module):
-    '''
+    """
     Starts the file observer if available and injects notifies
     the main loop though the NOTIFICATION_QUEUE.
-    '''
+    """
     if not WATCHDOG_ENABLED:
-        LOGGER.info('Cannot start observer, watchdog module not available')
+        LOGGER.info("Cannot start observer, watchdog module not available")
         return
 
     module_path = Path(module.__file__)
@@ -51,16 +52,12 @@ def start_observer(module):
                     LOGGER.info("Notifying reload of: %s", module_abspath)
                     NOTIFICATION_QUEUE.put(1)
 
-
     file_event_handler = ModuleEventHandler()
     observer = Observer()
-    observer.schedule(
-        file_event_handler,
-        module_dir,
-        recursive=False
-    )
+    observer.schedule(file_event_handler, module_dir, recursive=False)
     observer.start()
     return observer, file_event_handler
+
 
 def _extract(mod, name):
     callback = getattr(mod, name, None)
@@ -70,13 +67,16 @@ def _extract(mod, name):
         )
     return callback
 
-def import_module_and_callback(module_name: str, callback_name: str = 'packet_filter') -> (Any, Callable):
-    '''
+
+def import_module_and_callback(
+    module_name: str, callback_name: str = "packet_filter"
+) -> (Any, Callable):
+    """
     Returns the module and the callback. The module is used for autoreload.
-    '''
+    """
     module, callback = None, None
     if module_name:
-        if module_name.endswith('.py') and os.path.exists(module_name):
+        if module_name.endswith(".py") and os.path.exists(module_name):
             LOGGER.info(f"Loading plain file {module_name}")
             sys.path.append(os.path.dirname(module_name))
             module_name, _ = os.path.splitext(os.path.basename(module_name))
@@ -90,7 +90,10 @@ def import_module_and_callback(module_name: str, callback_name: str = 'packet_fi
                 LOGGER.info(f"Could not import {module_name}")
     return module, callback
 
-def reload_module_and_callback(module: Any, callback_name: str = 'packet_filter') -> Callable:
+
+def reload_module_and_callback(
+    module: Any, callback_name: str = "packet_filter"
+) -> Callable:
     new_mod = imp.reload(module)
     callback = _extract(module, callback_name)
     return new_mod, callback
