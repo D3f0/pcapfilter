@@ -32,7 +32,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    description="Python package for package filtering and manipulation using scapy",
+    description="Python package for packet filtering and manipulation using scapy",
     entry_points={
         'console_scripts': [
             'pcapfilter=pcapfilter.cli:main',
