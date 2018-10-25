@@ -1,1 +1,1 @@
-sphinx-click
+sphinx-click==1.4.0
