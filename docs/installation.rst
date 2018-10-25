@@ -49,3 +49,13 @@ Once you have a copy of the source, you can install it with:
 
 .. _Github repo: https://github.com/D3f0/pcapfilter
 .. _tarball: https://github.com/D3f0/pcapfilter/tarball/master
+
+Docker Container
+----------------
+
+You can obtain this Python package as a slim docker container (30MB). To get the image run::
+
+    docker pull pcapfilter
+
+
+
