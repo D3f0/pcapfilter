@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Console script for pcapfilter."""
+import os
 import sys
 import click
 import logging
@@ -14,6 +15,8 @@ STREAM_HANDLER.setFormatter(
     logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 )
 from .pcapfilter import run_filter
+from .template import FILTER_TEMPLATE
+
 
 def show_docker_help():
     click.echo(
@@ -22,7 +25,7 @@ def show_docker_help():
             "must ensure that you're not using some python package that was\n"
             "bundled in the image.\n"
             "\n",
-            fg='red'
+            fg="red",
         )
     )
     click.echo(
@@ -39,10 +42,10 @@ def show_docker_help():
             "def packet_filter(packet):\n"
             "    # Do something useful, return None to filter or modify contents with scapy\n"
             "    return pkg\n",
-            fg='green'
+            fg="green",
         )
     )
-    click.echo('\n')
+    click.echo("\n")
 
 
 @click.command(
@@ -57,17 +60,36 @@ def show_docker_help():
     default="",
     help="A python module name that contains a packet_filter(packet). More info at https://pcapfilter.readthedocs.io/en/latest/usage.html#defining-a-filter",
 )
-@click.option("-v", "--verbose", is_flag=True, help="Show log messages (defaults to STDERR)")
+@click.option(
+    "-s", "--silent", is_flag=False, help="Show log messages (defaults to STDERR)"
+)
 @click.option("-o", "--oldpcap", is_flag=True, help="Use old pcap for input")
 @click.option("-r", "--reload", is_flag=True, help="Reloads the module upon changes")
-@click.option("-d", "--docker-help", is_flag=True, help="Shows help when running from docker")
-def main(module, verbose, oldpcap, reload, docker_help):
+@click.option("-w", "--create-template", type=str, help="Creates an example file")
+@click.option(
+    "-d", "--docker-help", is_flag=True, help="Shows help when running from docker"
+)
+def main(module, silent, oldpcap, reload, create_template, docker_help):
     # Delay scapy import until it's necessary, since it takes some time
     if docker_help:
         show_docker_help()
         return
-    if verbose:
+
+    if not silent:
         LOGGER.addHandler(STREAM_HANDLER)
+
+    if create_template:
+        if reload:
+            LOGGER.warning("Cannot use reload when file creation is requested")
+        if module:
+            LOGGER.warning("The module name argument is expected after -w")
+        if os.path.exists(create_template):
+            LOGGER.critical("Will not overwrite %s", create_template)
+            return 4
+        LOGGER.info("Creating example file named {}".format(module))
+        with open(create_template, 'w') as fp:
+            fp.write(FILTER_TEMPLATE)
+        return 0
 
     if not oldpcap:
         LOGGER.info("Using PcapNgReader")
@@ -77,12 +99,8 @@ def main(module, verbose, oldpcap, reload, docker_help):
         from scapy.all import PcapReader as Reader
     from scapy.all import PcapWriter as Writer
 
-    run_filter(
-        reader_class=Reader,
-        writer_class=Writer,
-        module=module,
-        reload=reload,
-    )
+    run_filter(reader_class=Reader, writer_class=Writer, module=module, reload=reload)
+
 
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
