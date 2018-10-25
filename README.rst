@@ -20,7 +20,9 @@ PCap Filter
 
 
 
-Python package for package filtering and manipulation using scapy
+Python package for packet filtering and manipulation using scapy
+
+.. image:: ./imgs/pcapfilter.svg
 
 
 * Free software: MIT license
