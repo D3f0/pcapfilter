@@ -70,7 +70,7 @@ def _extract(mod, name):
         )
     return callback
 
-def import_module_and_callback(module_name: str, callback_name: str = 'pkg_filter') -> (Any, Callable):
+def import_module_and_callback(module_name: str, callback_name: str = 'packet_filter') -> (Any, Callable):
     '''
     Returns the module and the callback. The module is used for autoreload.
     '''
@@ -90,7 +90,7 @@ def import_module_and_callback(module_name: str, callback_name: str = 'pkg_filte
                 LOGGER.info(f"Could not import {module_name}")
     return module, callback
 
-def reload_module_and_callback(module: Any, callback_name: str = 'pkg_filter') -> Callable:
+def reload_module_and_callback(module: Any, callback_name: str = 'packet_filter') -> Callable:
     new_mod = imp.reload(module)
     callback = _extract(module, callback_name)
     return new_mod, callback

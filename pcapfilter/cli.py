@@ -36,7 +36,7 @@ def show_docker_help():
             "from logging import getLogger\n"
             "\n"
             "LOG = getLogger(__name__)\n"
-            "def pkg_filter(pkg):\n"
+            "def packet_filter(packet):\n"
             "    # Do something useful, return None to filter or modify contents with scapy\n"
             "    return pkg\n",
             fg='green'
@@ -46,20 +46,20 @@ def show_docker_help():
 
 
 @click.command(
-    help="Read pcap stream from stdin and writes to stdout processing through a python function."
-    "The input needs to be in pcapformat: "
-    "tcpdump -i en0  -s0 -w - | pcapfilter -m myfiltermodule.py | wireshark -k -i -"
+    help="Read packet capture data (pcap) stream from stdin, apply a function and write to stdout."
+    "Example (capture from INTERFACE and display in Wireshark): "
+    "tcpdump -i INTERFACE -s0 -w - | pcapfilter -m myfiltermodule.py | wireshark -k -i -"
 )
 @click.option(
     "-m",
     "--module",
     type=str,
     default="",
-    help="A python module name that contains a pkg_filter(pkg) function",
+    help="A python module name that contains a packet_filter(packet). More info at https://pcapfilter.readthedocs.io/en/latest/usage.html#defining-a-filter",
 )
-@click.option("-v", "--verbose", is_flag=True, help="Show log messages")
+@click.option("-v", "--verbose", is_flag=True, help="Show log messages (defaults to STDERR)")
 @click.option("-o", "--oldpcap", is_flag=True, help="Use old pcap for input")
-@click.option("-r", "--reload", is_flag=True, help="Reloads the function module")
+@click.option("-r", "--reload", is_flag=True, help="Reloads the module upon changes")
 @click.option("-d", "--docker-help", is_flag=True, help="Shows help when running from docker")
 def main(module, verbose, oldpcap, reload, docker_help):
     # Delay scapy import until it's necessary, since it takes some time
@@ -83,12 +83,6 @@ def main(module, verbose, oldpcap, reload, docker_help):
         module=module,
         reload=reload,
     )
-
-
-if __name__ == "__main__":
-    main()
-
-
 
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover

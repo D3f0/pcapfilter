@@ -2,9 +2,13 @@
 Usage
 =====
 
+.. click:: pcapfilter.cli:main
+   :prog: pcapfilter
+   :show-nested:
+
 The basic usage is::
 
-    INPUT | pcapfilter | OUTPUT
+    INPUT | pcapfilter [options] | OUTPUT
 
 Where INPUT is a package capture provider, such as `tcpdump` and OUTPUT is some program
 able to conusme pcap from stdin.
@@ -31,8 +35,9 @@ You need to provide a volume where your filter file is defined::
 Defining a filter
 -----------------
 
-A filter is a python module (or file ending in .py) that has a function called pkg_filter.
-This funcion receives an argument named pkg, that is a Scapy parsed packet.
+A filter is a python module (or file ending in .py) that has a function called `packet_filter`.
+This funcion receives an argument named `pkg`
 If `None` is returned, then the package is **discarded**.
 
 If the packet is returned (modified or not) it will be sent to the OUTPUT.
+
