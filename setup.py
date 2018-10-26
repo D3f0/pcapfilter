@@ -11,11 +11,15 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-requirements = ["Click>=6.0", "watchdog", "scapy"]
+requirements = [
+    "Click>=6.0",
+    "scapy",
+    "watchdog",
+]
 
-setup_requirements = []
+setup_requirements = ['pytest-runner', ]
 
-test_requirements = []
+test_requirements = ['pytest', 'pytest-click']
 
 setup(
     author="Nahuel Defossé",
