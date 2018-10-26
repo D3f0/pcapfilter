@@ -1,34 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Tests for `pcapfilter` package."""
+import pytest
+from pytest_click import cli_runner
+# Packet generation
+from scapy.all import ICMP, IP, TCP, UDP, Ether, PcapNgReader, PcapWriter, PcapReader
+from .utils import (
+    PreloadedPcapWriter,
+    ReadablePcapWriter,
+    assert_same_packet,
+)
+from pcapfilter.pcapfilter import run_filter
+from unittest import mock
 
 
-import unittest
-from click.testing import CliRunner
+def test_pcap_in_out(cli_runner):
+    with mock.patch('pcapfilter.pcapfilter.LOGGER') as LOGGER:
 
-from pcapfilter import pcapfilter
-from pcapfilter import cli
+        initial = Ether() / IP() / TCP()
+        input_holder = PreloadedPcapWriter(
+            initial_content=[initial]
+        )
+        output_holder = ReadablePcapWriter()
 
-
-class TestPcapfilter(unittest.TestCase):
-    """Tests for `pcapfilter` package."""
-
-    def setUp(self):
-        """Set up test fixtures, if any."""
-
-    def tearDown(self):
-        """Tear down test fixtures, if any."""
-
-    def test_000_something(self):
-        """Test something."""
-
-    def test_command_line_interface(self):
-        """Test the CLI."""
-        runner = CliRunner()
-        result = runner.invoke(cli.main)
-        assert result.exit_code == 0
-        assert "pcapfilter.cli.main" in result.output
-        help_result = runner.invoke(cli.main, ["--help"])
-        assert help_result.exit_code == 0
-        assert "--help  Show this message and exit." in help_result.output
+        retval = run_filter(
+            reader_class=PcapNgReader,
+            writer_class=PcapWriter,
+            module=None,
+            _input=input_holder.file_obj,
+            _output=output_holder.file_obj,
+        )
+        assert retval == 0
+        output = next(output_holder.get_contents())
+        assert_same_packet(initial, output)
