@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
 """Console script for pcapfilter."""
+import logging
 import os
 import sys
+
 import click
-import logging
+
+from .pcapfilter import run_filter
+from .template import FILTER_TEMPLATE
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.DEBUG)
@@ -14,8 +18,6 @@ STREAM_HANDLER.setLevel(logging.DEBUG)
 STREAM_HANDLER.setFormatter(
     logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 )
-from .pcapfilter import run_filter
-from .template import FILTER_TEMPLATE
 
 
 def show_docker_help():
@@ -29,7 +31,8 @@ def show_docker_help():
         )
     )
     click.echo(
-        "tcpdump -i en0  -s0 -w - | docker run --rm -i -v $(pwd):/shared pcapfilter pcapfilter -vm /shared/main.py | wireshark -k -i -"
+        "tcpdump -i en0  -s0 -w - | docker run --rm -i -v $(pwd):/shared pcapfilter "
+        "pcapfilter -vm /shared/main.py | wireshark -k -i -"
         "\n\n"
         "The main.py should contain a function like:\n"
     )
@@ -38,10 +41,10 @@ def show_docker_help():
             "from scapy.all import *\n"
             "from logging import getLogger\n"
             "\n"
-            "LOG = getLogger(__name__)\n"
+            "LOG = getLogger(__name__)\n\n"
             "def packet_filter(packet):\n"
-            "    # Do something useful, return None to filter or modify contents with scapy\n"
-            "    return pkg\n",
+            "    # Return None to filter, or (un)modified packet with scapy\n"
+            "    return packet\n",
             fg="green",
         )
     )
@@ -49,17 +52,19 @@ def show_docker_help():
 
 
 @click.command(
-    help="Read packet capture data (pcap) stream from stdin, apply a function and write to stdout."
-    "Example (capture from INTERFACE and display in Wireshark): "
+    help="Read packet capture data (pcap) stream from stdin, apply a function and write "
+    "to stdout. Example (capture from INTERFACE and display in Wireshark): "
     "tcpdump -i INTERFACE -s0 -w - | pcapfilter -m myfiltermodule.py | wireshark -k -i -",
-    epilog="In normal operation stdin and stdout should work with pcap data. Log messages are written to stderr.",
+    epilog="In normal operation stdin and stdout should work with pcap data. Log messages"
+    " are written to stderr.",
 )
 @click.option(
     "-m",
     "--module",
     type=str,
     default="",
-    help="A python module name that contains a packet_filter(packet). You can create one with -w example.py",
+    help="A python module name that contains a packet_filter(packet). You can create one "
+    "with -w example.py",
 )
 @click.option("-s", "--silent", is_flag=False, help="Hide log messages from STDERR)")
 @click.option("-o", "--oldpcap", is_flag=True, help="Use old pcap for input")
