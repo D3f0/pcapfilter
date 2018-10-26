@@ -4,14 +4,14 @@
 tcpdump -i en0  -s0 -w - | pcapfilter -m mymodule.py | wireshark -k -i -
 
 In a OpenWRT enabled router something like this could be used:
-ssh router "tcpdump -i eth1.2 -i br-lan -s0 -w - " | pcapfilter -m mymodule.py | wireshark -k -i -
+ssh router "tcpdump -i eth1.2 -i br-lan -s0 -w - " | pcapfilter -m mymodule.py |
+wireshark -k -i -
 """
 import imp
 import logging
 import os
 from pathlib import Path
 from queue import Queue
-import logging
 import sys
 from typing import Any, Callable
 from datetime import datetime, timedelta
@@ -63,7 +63,7 @@ def _extract(mod, name):
     callback = getattr(mod, name, None)
     if not callable(callback):
         LOGGER.warning(
-            f"{module_name} does not have a callable {callback_name} function"
+            "{} does not have a callable {}".format(mod, name)
         )
     return callback
 
@@ -77,7 +77,7 @@ def import_module_and_callback(
     module, callback = None, None
     if module_name:
         if module_name.endswith(".py") and os.path.exists(module_name):
-            LOGGER.info(f"Loading plain file {module_name}")
+            LOGGER.info("Loading plain file {}".format(module_name))
             sys.path.append(os.path.dirname(module_name))
             module_name, _ = os.path.splitext(os.path.basename(module_name))
         if callable(module_name):
@@ -86,8 +86,8 @@ def import_module_and_callback(
             try:
                 module = __import__(module_name)
                 callback = _extract(module, callback_name)
-            except ImportError as e:
-                LOGGER.info(f"Could not import {module_name}")
+            except ImportError:
+                LOGGER.info("Could not import {}".format(module_name))
     return module, callback
 
 
@@ -102,10 +102,10 @@ def reload_module_and_callback(
 def run_filter(
     reader_class: object,
     writer_class: object,
-    module: str,
+    _input: object = sys.stdin.buffer,
+    _output: object = sys.stdout.buffer,
+    module: str = None,
     reload: bool = False,
-    _input=sys.stdin.buffer,
-    _output=sys.stdout.buffer,
 ):
     """
     Process packets inserted from _input through a function and wirte
@@ -113,7 +113,7 @@ def run_filter(
     """
     module, callback = import_module_and_callback(module)
     if reload and module:
-        _reloader = start_observer(module)
+        _reloader = start_observer(module)  # noqa
     try:
         LOGGER.info("Creating reader")
         reader = reader_class(_input)
@@ -123,7 +123,7 @@ def run_filter(
         LOGGER.info("Existed before fully opening the stream")
         return -1
     except Scapy_Exception:
-        LOGGER.error("Could not read pcap form stdin")
+        LOGGER.error("Could not read pcap form stdin.")
         return -2
 
     # Counters
@@ -131,13 +131,12 @@ def run_filter(
     delta = timedelta(seconds=1)
     count = 0
 
-    while True:
+    for source in reader:
         try:
-            source = reader.read_packet()
-            new_package = callback(source)
-            if not new_package:
+            output = callback(source) if callable(callback) else source
+            if not output:
                 continue
-            writer.write(new_package)
+            writer.write(output)
             if reload and NOTIFICATION_QUEUE.full():
                 module, callback = reload_module_and_callback(module)
                 NOTIFICATION_QUEUE.get()
@@ -145,20 +144,22 @@ def run_filter(
             count += 1
             current = datetime.now()
             if current - last >= delta:
-                LOGGER.info(f"Packets processed in last second: {count}")
+                LOGGER.info("Packets processed in last second: {}".format(count))
                 count = 0
                 last = current
 
-        except (KeyboardInterrupt, BrokenPipeError) as e:
-            LOGGER.info(f"Stopping...")
+        except (KeyboardInterrupt, BrokenPipeError):
+            LOGGER.info("Stopping...")
             break
         except Scapy_Exception:
             LOGGER.error("Could not read pcap form stdin")
             return -2
-        except Exception as e:
-            LOGGER.exception(
-                "Aborting execution due errors in function. "
-                "Hit Ctrl-C if prompt does not return."
-            )
-            return -3
+        # except Exception as excp:
+        #     import pdb; pdb.set_trace()
+        #     LOGGER.exception(
+        #         "Aborting execution due errors in function. "
+        #         "Hit Ctrl-C if prompt does not return."
+        #     )
+        #     return -3
+    LOGGER.info("%s packets processed." % count)
     return 0
