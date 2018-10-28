@@ -36,6 +36,7 @@ import pcapfilter
 extensions = [
     #'sphinx.ext.autodoc',
     #'sphinx.ext.viewcode',
+    "sphinx.ext.intersphinx",
     "sphinx_click.ext"
 ]
 # Add any paths that contain templates here, relative to this directory.
@@ -51,7 +52,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"PCap Filter"
+project = u"pcapfilter"
 copyright = u"2018, Nahuel Defossé"
 author = u"Nahuel Defossé"
 

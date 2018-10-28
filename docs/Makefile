@@ -3,7 +3,7 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = python -msphinx
+SPHINXBUILD   = $(PYTHON) -msphinx
 SPHINXPROJ    = pcapfilter
 SOURCEDIR     = .
 BUILDDIR      = _build

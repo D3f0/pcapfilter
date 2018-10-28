@@ -1,5 +1,5 @@
-Welcome to PCap Filter's documentation!
-=======================================
+Welcome to pcapfilter documentation!
+====================================
 
 .. toctree::
    :maxdepth: 2
@@ -7,6 +7,7 @@ Welcome to PCap Filter's documentation!
 
    readme
    installation
+   about_package_capture
    usage
    contributing
    authors

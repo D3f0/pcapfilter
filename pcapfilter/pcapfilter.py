@@ -16,6 +16,9 @@ import sys
 from typing import Any, Callable
 from datetime import datetime, timedelta
 from scapy.error import Scapy_Exception
+from scapy.all import PcapNgReader, PcapWriter
+import io
+
 
 try:
     from watchdog.events import FileSystemEventHandler
@@ -62,9 +65,7 @@ def start_observer(module):
 def _extract(mod, name):
     callback = getattr(mod, name, None)
     if not callable(callback):
-        LOGGER.warning(
-            "{} does not have a callable {}".format(mod, name)
-        )
+        LOGGER.warning("{} does not have a callable {}".format(mod, name))
     return callback
 
 
@@ -100,11 +101,11 @@ def reload_module_and_callback(
 
 
 def run_filter(
-    reader_class: object,
-    writer_class: object,
-    _input: object = sys.stdin.buffer,
-    _output: object = sys.stdout.buffer,
+    _input: io.BytesIO,
+    _output: io.BytesIO,
     module: str = None,
+    reader_class: object = PcapNgReader,
+    writer_class: object = PcapWriter,
     reload: bool = False,
 ):
     """
@@ -154,12 +155,6 @@ def run_filter(
         except Scapy_Exception:
             LOGGER.error("Could not read pcap form stdin")
             return -2
-        # except Exception as excp:
-        #     import pdb; pdb.set_trace()
-        #     LOGGER.exception(
-        #         "Aborting execution due errors in function. "
-        #         "Hit Ctrl-C if prompt does not return."
-        #     )
-        #     return -3
+
     LOGGER.info("%s packets processed." % count)
     return 0

@@ -7,7 +7,6 @@ import sys
 
 import click
 
-from .pcapfilter import run_filter
 from .template import FILTER_TEMPLATE
 
 LOGGER = logging.getLogger()
@@ -74,6 +73,7 @@ def show_docker_help():
     "-d", "--docker-help", is_flag=True, help="Shows help when running from docker"
 )
 def main(module, silent, oldpcap, reload, create_template, docker_help):
+    LOGGER.debug(__name__)
     # Delay scapy import until it's necessary, since it takes some time
     if docker_help:
         show_docker_help()
@@ -85,6 +85,7 @@ def main(module, silent, oldpcap, reload, create_template, docker_help):
     if create_template:
         if reload:
             LOGGER.warning("Cannot use reload when file creation is requested")
+            return
         if module:
             LOGGER.warning("The module name argument is expected after -w")
         if os.path.exists(create_template):
@@ -103,7 +104,17 @@ def main(module, silent, oldpcap, reload, create_template, docker_help):
         from scapy.all import PcapReader as Reader
     from scapy.all import PcapWriter as Writer
 
-    run_filter(reader_class=Reader, writer_class=Writer, module=module, reload=reload)
+    # Delay scapy import
+    from .pcapfilter import run_filter
+
+    run_filter(
+        _input=sys.stdin,
+        _output=sys.stdout,
+        reader_class=Reader,
+        writer_class=Writer,
+        module=module,
+        reload=reload,
+    )
 
 
 if __name__ == "__main__":
