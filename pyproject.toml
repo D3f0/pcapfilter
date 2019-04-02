@@ -1,7 +1,9 @@
 [tool.poetry]
 name = "pcapfilter"
 version = "0.2.0"
-description = ""
+description = """\
+A tool to interact with netowkr traffic captured with tcpudmp or wireshark.
+"""
 authors = ["Nahuel Defossé <nahuel.defosse@gmail.com>"]
 
 [tool.poetry.dependencies]
