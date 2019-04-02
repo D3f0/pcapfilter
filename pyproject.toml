@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pcapfilter"
-version = "0.1.7"
+version = "0.2.0"
 description = ""
 authors = ["Nahuel Defossé <nahuel.defosse@gmail.com>"]
 
