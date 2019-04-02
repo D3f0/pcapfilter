@@ -5,6 +5,7 @@ description = """\
 A tool to interact with netowkr traffic captured with tcpudmp or wireshark.
 """
 authors = ["Nahuel Defossé <nahuel.defosse@gmail.com>"]
+homepage = 'https://github.com/D3f0/pcapfilter'
 
 [tool.poetry.dependencies]
 python = "^3.6"
